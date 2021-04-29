@@ -26,6 +26,10 @@
     ("^\\(=+\\|#+\\) +\\(.*\\)$"
      (1 font-lock-keyword-face)
      (2 font-lock-preprocessor-face))
+    ;; Attribute:
+    ("^\\(:[a-z0-9]+:\\) *\\(.*\\)$"3
+     (1 font-lock-preprocessor-face)
+     (2 font-lock-string-face))
     ;; List item:
     ("^ *\\(\\*+\\) +\\(.*\\)"
      (1 font-lock-keyword-face)
