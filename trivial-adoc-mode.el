@@ -6,7 +6,7 @@
 ;; Author: Lassi Kortela
 ;; URL: https://github.com/lassik/emacs-trivial-adoc-mode
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "24.5"))
 ;; Keywords: languages wp
 
 ;; This file is not part of GNU Emacs.
