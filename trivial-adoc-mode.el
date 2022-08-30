@@ -21,19 +21,25 @@
 
 ;;; Code:
 
+(defconst trivial-adoc-mode-attribute-name-regex "[a-z0-9_][a-z0-9_-]*")
+
 (defconst trivial-adoc-mode-font-lock-keywords
-  '(;; Heading:
+  `(;; Heading:
     ("^\\(=+\\|#+\\) +\\(.*\\)$"
      (1 font-lock-keyword-face)
      (2 font-lock-preprocessor-face))
     ;; Attribute:
-    ("^\\(:[a-z0-9]+:\\) *\\(.*\\)$"3
-     (1 font-lock-preprocessor-face)
+    (,(concat "^\\(:" trivial-adoc-mode-attribute-name-regex ":\\) * \\(\\(.*?\\\\\n\\)*.*\\)$")
+     (1 font-lock-constant-face)
      (2 font-lock-string-face))
+    ;; Attribute reference:
+    (,(concat "{" trivial-adoc-mode-attribute-name-regex "}")
+     (0 font-lock-constant-face))
     ;; List item:
     ("^ *\\(\\*+\\) +\\(.*\\)"
      (1 font-lock-keyword-face)
      (2 font-lock-type-face))
+    ;; Blocks
     ("^\\[.*\\]$"
      (0 font-lock-keyword-face))
     ;; Table delimiter line:
@@ -42,6 +48,8 @@
     ;; Table row:
     ("^|.*$"
      (0 font-lock-variable-name-face))
+    ;; Macro calls
+    ("")
     ;; Inline preformatted:
     ("`.*?`"
      (0 font-lock-string-face)))
