@@ -55,6 +55,20 @@
      (0 font-lock-string-face)))
   "Font-lock syntax patterns for `trivial-adoc-mode'.")
 
+(defun trivial-adoc-mode-maybe-end-sentence ()
+  "Insert dot and go to new line if guessing this is the end of a sentence."
+  (interactive)
+  (insert ".")
+  (when (looking-back "\\s \\w*\\w\\{3\\}\\." 20)
+      (insert "\n")))
+
+
+(defvar trivial-adoc-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "."  #'trivial-adoc-mode-maybe-end-sentence)
+    map))
+
+
 ;;;###autoload
 (define-derived-mode trivial-adoc-mode text-mode "adoc"
   "A bare-bones major mode for AsciiDoc markup.
@@ -68,13 +82,40 @@ faces. Instead, it provides very bare-bones syntax highlighting.
 
 \\{trivial-adoc-mode-map}"
   ;; Setup font-lock.
-  (setq-local font-lock-defaults
-              '(trivial-adoc-mode-font-lock-keywords nil t))
-  (setq-local font-lock-multiline
-              t))
+  (setq-local font-lock-defaults '(trivial-adoc-mode-font-lock-keywords nil t)
+              font-lock-multiline t
+              sentence-end-double-space nil))
+
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.adoc$" . trivial-adoc-mode))
+
+(defun adoc-reformat-paragrpah ()
+  "Break a long line or text block into multiple lines by ending period.
+Work on text selection if there is one, else the current text block.
+URL `http://xahlee.info/emacs/emacs/elisp_reformat_to_sentence_lines.html'
+Version 2020-12-02 2021-04-14 2021-08-01"
+  (interactive)
+  (let ($p1 $p2)
+    (if (use-region-p)
+        (setq $p1 (region-beginning) $p2 (region-end))
+      (progn
+        (if (re-search-backward "\n[ \t]*\n+" nil "move")
+            (progn (re-search-forward "\n[ \t]*\n+")
+                   (setq $p1 (point)))
+          (setq $p1 (point)))
+        (re-search-forward "\n[ \t]*\n" nil "move")
+        (setq $p2 (point))))
+    (save-restriction
+      (narrow-to-region $p1 $p2)
+      (progn (goto-char (point-min)) (while (search-forward "\n" nil t) (replace-match " " )))
+      (progn (goto-char (point-min)) (while (re-search-forward "  +" nil t) (replace-match " " )))
+      (progn (goto-char (point-min)) (while (re-search-forward "\\. +\\([0-9A-Za-z]+\\)" nil t) (replace-match ".\n\\1" )))
+      (progn (goto-char (point-min)) (while (search-forward " <a " nil t) (replace-match "\n<a " )))
+      (progn (goto-char (point-min)) (while (search-forward "</a>" nil t) (replace-match "</a>\n" )))
+      (goto-char (point-max))
+      (while (eq (char-before ) 32) (delete-char -1))
+      (insert "\n\n"))))
 
 (provide 'trivial-adoc-mode)
 
