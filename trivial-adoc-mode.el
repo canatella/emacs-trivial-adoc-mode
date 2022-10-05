@@ -21,10 +21,22 @@
 
 ;;; Code:
 
+(defgroup trivial-adoc-mode nil
+  "Bare-bones major mode for AsciiDoc."
+  :group 'languages)
+
+(defcustom trivial-adoc-mode-one-sentence-per-line nil
+  "Set to t to make inserting . go to the next line."
+  :type 'boolean
+  :group 'trivial-adoc-mode)
+
 (defconst trivial-adoc-mode-attribute-name-regex "[a-z0-9_][a-z0-9_-]*")
 
 (defconst trivial-adoc-mode-font-lock-keywords
-  `(;; Heading:
+  `(;; Comments
+    ("^\\(//\\)\\(.*\\)"
+     (1 font-lock-comment-delimiter-face)
+     (2 font-lock-comment-face));; Heading:
     ("^\\(=+\\|#+\\) +\\(.*\\)$"
      (1 font-lock-keyword-face)
      (2 font-lock-preprocessor-face))
@@ -42,25 +54,34 @@
     ;; Blocks
     ("^\\[.*\\]$"
      (0 font-lock-keyword-face))
+    ;; Page breaks
+    ("^\\('''\\|<<<\\|----\\)$"
+     (0 font-lock-keyword-face))
     ;; Table delimiter line:
     ("^|=+$"
      (0 font-lock-keyword-face))
     ;; Table row:
-    ("^|.*$"
-     (0 font-lock-variable-name-face))
+    ("^\\(|\\).*$"
+     (1 font-lock-keyword-face))
     ;; Macro calls
-    ("")
+    ("\\(\\<\\S +::?\\S +?\\[\\).*\\(\\]\\)"
+     (1 font-lock-function-name-face)
+     (2 font-lock-function-name-face))
     ;; Inline preformatted:
     ("`.*?`"
-     (0 font-lock-string-face)))
+     (0 font-lock-string-face))
+    ;; Inline block
+    ("\\(\\[.*?\\]#\\).*?\\(#\\)"
+     (1 font-lock-doc-markup-face)
+     (2 font-lock-doc-markup-face)))
   "Font-lock syntax patterns for `trivial-adoc-mode'.")
 
 (defun trivial-adoc-mode-maybe-end-sentence ()
   "Insert dot and go to new line if guessing this is the end of a sentence."
   (interactive)
   (insert ".")
-  (when (looking-back "\\s \\w*\\w\\{3\\}\\." 20)
-      (insert "\n")))
+  (when (and trivial-adoc-mode-one-sentence-per-line (looking-back "\\(\\s \\|^\\)\\w*\\w\\{3\\}\\." 20))
+    (insert "\n")))
 
 
 (defvar trivial-adoc-mode-map
@@ -84,13 +105,14 @@ faces. Instead, it provides very bare-bones syntax highlighting.
   ;; Setup font-lock.
   (setq-local font-lock-defaults '(trivial-adoc-mode-font-lock-keywords nil t)
               font-lock-multiline t
-              sentence-end-double-space nil))
+              sentence-end-double-space nil
+              ))
 
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.adoc$" . trivial-adoc-mode))
 
-(defun adoc-reformat-paragrpah ()
+(defun trivial-adoc-mode-reformat-paragrpah ()
   "Break a long line or text block into multiple lines by ending period.
 Work on text selection if there is one, else the current text block.
 URL `http://xahlee.info/emacs/emacs/elisp_reformat_to_sentence_lines.html'
