@@ -49,11 +49,21 @@
     ("^|.*$"
      (0 font-lock-variable-name-face))
     ;; Macro calls
-    ("")
+    ("\\(\\w+\\)\\(::?\\)\\(.*?\\)\\(\\[\\)\\(.*?\\)\\( *, *\\(.*?\\)\\)?\\(\\]\\)"
+     (1 font-lock-function-name-face)
+     (3 font-lock-variable-name-face)
+     (5 font-lock-variable-name-face)
+     (7 font-lock-variable-name-face nil t))
     ;; Inline preformatted:
     ("`.*?`"
      (0 font-lock-string-face)))
   "Font-lock syntax patterns for `trivial-adoc-mode'.")
+
+(defvar trivial-adoc-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?- "w" st)
+    st)
+  "Syntax table used while in `trivial-adoc-mode'.")
 
 ;;;###autoload
 (define-derived-mode trivial-adoc-mode text-mode "adoc"
