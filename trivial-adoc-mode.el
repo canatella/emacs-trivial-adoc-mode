@@ -65,6 +65,13 @@
     st)
   "Syntax table used while in `trivial-adoc-mode'.")
 
+(defun trivial-adoc-mode-flyspell-verify ()
+  "Return true if current word should be spell checked"
+  (unless (eql (point) (point-min))
+    ;; (point) is next char after the word. Must check one char before.
+    (let ((f (get-text-property (1- (point)) 'face)))
+      (not (memq f (list font-lock-function-name-face font-lock-variable-name-face font-lock-keyword-face font-lock-builtin-face font-lock-type-face font-lock-constant-face))))))
+
 ;;;###autoload
 (define-derived-mode trivial-adoc-mode text-mode "adoc"
   "A bare-bones major mode for AsciiDoc markup.
@@ -78,10 +85,11 @@ faces. Instead, it provides very bare-bones syntax highlighting.
 
 \\{trivial-adoc-mode-map}"
   ;; Setup font-lock.
-  (setq-local font-lock-defaults
-              '(trivial-adoc-mode-font-lock-keywords nil t))
-  (setq-local font-lock-multiline
-              t))
+  (setq-local font-lock-defaults '(trivial-adoc-mode-font-lock-keywords nil t))
+  (setq-local font-lock-multiline t))
+
+;; Configure flyspell predicate
+(put 'trivial-adoc-mode 'flyspell-mode-predicate #'trivial-adoc-mode-flyspell-verify)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.adoc$" . trivial-adoc-mode))
